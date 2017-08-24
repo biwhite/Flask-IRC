@@ -8,6 +8,7 @@ import itertools
 import pyev
 import signal
 import socket
+import ssl
 import sys
 import werkzeug.exceptions
 from datetime import datetime
@@ -75,6 +76,7 @@ class Bot(object):
         app.config.setdefault('IRC_SERVER_BIND', None)
         app.config.setdefault('IRC_SERVER_HOST', '127.0.0.1')
         app.config.setdefault('IRC_SERVER_PORT', 6667)
+        app.config.setdefault('IRC_SERVER_SSL', False)
         app.config.setdefault('IRC_SERVER_PASS', None)
         app.config.setdefault('IRC_NICK', 'FlaskBot')
         app.config.setdefault('IRC_USER', 'FlaskBot')
@@ -310,6 +312,7 @@ class Bot(object):
         bind_host = self.app.config['IRC_SERVER_BIND']
         host = self.app.config['IRC_SERVER_HOST']
         port = self.app.config['IRC_SERVER_PORT']
+        sslon = self.app.config['IRC_SERVER_SSL']
         # Resolve bind host (local)
         try:
             ai_local = socket.getaddrinfo(bind_host, 0, 0, 0, socket.SOL_TCP, socket.AI_PASSIVE)
@@ -333,6 +336,8 @@ class Bot(object):
             # Create socket
             try:
                 s = socket.socket(af, socktype, proto)
+                if sslon:
+                    s = ssl.wrap_socket(s)
             except socket.error, msg:
                 s = None
                 continue
